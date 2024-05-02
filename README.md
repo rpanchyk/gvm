@@ -1,6 +1,33 @@
 # Go Version Manager
 
-A version manager for Golang runtime.
+A version manager for Golang SDKs.
+
+## Structure
+
+The `gvm` is installed to `~/.gvm` directory.
+
+### Executables
+
+Directory `bin` contains executables.
+
+### Configuration
+
+File `config.toml` is a configuration file.
+
+```toml
+[main]
+# Absolute or relative path where SDKs will be installed in `go{version}` directory.
+sdk_dir = "./sdk"
+```
+
+## How it works
+
+- Verify specified SDK version is available.
+- Download archive from https://go.dev/dl page.
+- (Not implemented) Verify checksum of fetched archive file.
+- Extract archive to `{sdk_dir}/go{version}` directory.
+- (Not implemented) Set `GOROOT` and `GOPATH` env variables.
+- (Not implemented) Update `PATH` env variable.
 
 ## Disclaimer
 
