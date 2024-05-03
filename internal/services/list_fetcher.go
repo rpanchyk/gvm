@@ -19,6 +19,19 @@ type ListFetcher struct {
 }
 
 func (f ListFetcher) Fetch() ([]models.Sdk, error) {
+	sdks, err := f.FetchAll()
+	if err != nil {
+		return nil, fmt.Errorf("error fetching all SDKs: %w", err)
+	}
+
+	reduced, err := f.reduce(sdks)
+	if err != nil {
+		return nil, fmt.Errorf("error filtering SDKs: %w", err)
+	}
+	return reduced, nil
+}
+
+func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
 	response, err := http.Get(f.Config.AllReleasesURL)
 	if err != nil {
 		return nil, fmt.Errorf("error making http request: %w", err)
@@ -69,11 +82,13 @@ func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
 			continue
 		}
 
-		// if runtime.GOOS == sdk.Os && runtime.GOARCH == sdk.Arch {
 		sdks = append(sdks, sdk)
-		// }
 	}
 
+	return sdks, nil
+}
+
+func (f ListFetcher) reduce(sdks []models.Sdk) ([]models.Sdk, error) {
 	sort.Slice(sdks, func(i, j int) bool {
 		first := strings.Split(sdks[i].Version, ".")
 		second := strings.Split(sdks[j].Version, ".")
@@ -103,12 +118,10 @@ func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
 
 		return false
 	})
-
-	// fmt.Printf("======sdks: %v\n", sdks)
+	// fmt.Printf("Sorted sdks: %v\n", sdks)
 
 	res := make([]models.Sdk, 0)
 	count := 0
-	// length := 0
 	ver := ""
 	for _, sdk := range sdks {
 		if ver != sdk.Version {
@@ -118,12 +131,10 @@ func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
 			break
 		}
 		res = append(res, sdk)
-		// length++
 		ver = sdk.Version
 	}
 
 	clear(sdks)
 
-	// return sdks[0:length], nil
 	return res, nil
 }
