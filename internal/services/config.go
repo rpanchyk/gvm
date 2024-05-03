@@ -25,6 +25,10 @@ func (c Config) GetConfig() (*models.Config, error) {
 		configFile := viper.GetViper().ConfigFileUsed()
 		config.InstallDir = filepath.Join(filepath.Dir(configFile), config.InstallDir)
 	}
+	if !filepath.IsAbs(config.LocalDir) {
+		configFile := viper.GetViper().ConfigFileUsed()
+		config.LocalDir = filepath.Join(filepath.Dir(configFile), config.LocalDir)
+	}
 
 	return &config, nil
 }

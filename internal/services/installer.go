@@ -52,6 +52,15 @@ func (i Installer) Install(version string) error {
 		fmt.Printf("Installed SDK: %s\n", installDir)
 	}
 
+	localDir := filepath.Join(i.Config.LocalDir, "go"+sdk.Version)
+	for _, dir := range []string{"bin", "pkg"} {
+		dirPath := filepath.Join(localDir, dir)
+		if err = os.MkdirAll(dirPath, os.ModePerm); err != nil {
+			return fmt.Errorf("cannot create dir: %s error: %w", dirPath, err)
+		}
+	}
+	fmt.Printf("Local directory created: %s\n", localDir)
+
 	return nil
 }
 
