@@ -2,17 +2,38 @@
 
 A version manager for Golang SDKs.
 
+## TODO
+
+1. `gvm help` - shows help
+1. `gvm version` - shows version
+1. `gvm list` - shows list of available Go versions
+1. `gvm install {version}` - install specified Go version
+1. `gvm update` - install the latest Go version
+1. `gvm remove {version}` - remove specified Go version
+
+## Usage
+
+The following is shown if `gvm` executed:
+
+```
+Usage:
+  gvm [flags]
+
+Flags:
+  -h, --help   help for gvm
+```
+
 ## Structure
 
 The `gvm` is installed to `~/.gvm` directory.
 
 ### Executables
 
-Directory `bin` contains executables.
+Directory `~/.gvm/bin` contains executables.
 
 ### Configuration
 
-File `config.toml` is a configuration file.
+File `~/.gvm/config.toml` is a configuration file.
 
 ```toml
 [main]
@@ -27,7 +48,7 @@ sdk_dir = "./sdk"
 - (Not implemented) Verify checksum of fetched archive file.
 - Extract archive to `{sdk_dir}/go{version}` directory.
 - (Not implemented) Set `GOROOT` and `GOPATH` env variables.
-- (Not implemented) Update `PATH` env variable.
+- (Not implemented) Update `PATH` env variable to `GOROOT/bin` and `GOPATH/bin` dirs.
 
 ## Disclaimer
 
