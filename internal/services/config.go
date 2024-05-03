@@ -17,10 +17,13 @@ func (c Config) GetConfig() (*models.Config, error) {
 		return nil, err
 	}
 
-	// Justify sdk dir path
-	if !filepath.IsAbs(config.SdkDir) {
+	if !filepath.IsAbs(config.DownloadDir) {
 		configFile := viper.GetViper().ConfigFileUsed()
-		config.SdkDir = filepath.Join(filepath.Dir(configFile), config.SdkDir)
+		config.DownloadDir = filepath.Join(filepath.Dir(configFile), config.DownloadDir)
+	}
+	if !filepath.IsAbs(config.InstallDir) {
+		configFile := viper.GetViper().ConfigFileUsed()
+		config.InstallDir = filepath.Join(filepath.Dir(configFile), config.InstallDir)
 	}
 
 	return &config, nil
