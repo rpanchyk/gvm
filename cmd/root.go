@@ -5,30 +5,30 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rpanchyk/gvm/internal"
+	// "github.com/rpanchyk/gvm/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "gvm",
 	Short: "Go version manager",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Usage()
 
-		println("cmd start")
+		// println("cmd start")
 
-		app := &internal.App{}
-		if err := app.Run(); err != nil {
-			os.Exit(1)
-		}
+		// app := &internal.App{}
+		// if err := app.Run(); err != nil {
+		// 	os.Exit(1)
+		// }
 
-		println("cmd end")
+		// println("cmd end")
 	},
 }
 
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
