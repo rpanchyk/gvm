@@ -19,6 +19,17 @@ type Remover struct {
 }
 
 func (r Remover) Remove(version string) error {
+	listFetcher := &ListFetcher{Config: r.Config}
+	sdks, err := listFetcher.FetchAll()
+	if err != nil {
+		return fmt.Errorf("cannot get list of SDKs: %w", err)
+	}
+	for _, sdk := range sdks {
+		if sdk.Version == version && sdk.IsDefault {
+			return fmt.Errorf("cannot remove SDK version %s since it is used as default", version)
+		}
+	}
+
 	if runtime.GOOS == "windows" {
 		return r.removeWindows(version)
 	}
