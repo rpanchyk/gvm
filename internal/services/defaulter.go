@@ -120,14 +120,10 @@ func (d Defaulter) updateWindowsPathVar(values []string) error {
 	// So, we go by splitted Path until faced with any path starting with user home directory.
 	// This identifies starting of UserEnv.Path value.
 	userPathEnvVar := []string{}
-	started := false
 	for _, path := range strings.Split(oldPathEnvVar, ";") {
 		if strings.HasPrefix(path, userHomeDir) {
-			started = true
-		}
-		if started {
 			if slices.Contains(sdkBinDirs, path) {
-				continue // skip existing
+				continue // actually, removing
 			}
 			userPathEnvVar = append(userPathEnvVar, path)
 		}
