@@ -2,17 +2,6 @@
 
 A version manager for Golang SDKs.
 
-## TODO
-
-1. `gvm help` - shows help
-1. `gvm version` - shows version
-1. `gvm list` - shows list of available Go versions
-1. `gvm download {version}` - download specified Go version
-1. `gvm install {version}` - install specified Go version
-1. `gvm default {version}` - set specified Go version as default
-1. `gvm update` - install the latest Go version
-1. `gvm remove {version}` - remove specified Go version
-
 ## Usage
 
 The following is shown if `gvm` executed:
@@ -30,6 +19,7 @@ Available Commands:
   install     Install specified Go version
   list        Shows list of available Go versions
   remove      Remove specified Go version
+  update      Install the latest Go version
   version     Shows version of gvm
 
 Flags:

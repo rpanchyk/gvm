@@ -18,6 +18,18 @@ type Defaulter struct {
 }
 
 func (d Defaulter) Set(version string) error {
+	listFetcher := &ListFetcher{Config: d.Config}
+	sdks, err := listFetcher.FetchAll()
+	if err != nil {
+		return fmt.Errorf("cannot get list of SDKs: %w", err)
+	}
+	for _, sdk := range sdks {
+		if sdk.Version == version && sdk.IsDefault {
+			fmt.Printf("SDK version %s is already used as default", version)
+			return nil
+		}
+	}
+
 	if runtime.GOOS == "windows" {
 		return d.setWindows(version)
 	}
