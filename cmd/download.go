@@ -22,7 +22,7 @@ var downloadCmd = &cobra.Command{
 		fmt.Printf("Parsed config: %+v\n", *config)
 
 		downloader := &services.Downloader{Config: config}
-		if err = downloader.Download(args[0]); err != nil {
+		if _, err = downloader.Download(args[0]); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

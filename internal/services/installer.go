@@ -4,11 +4,8 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
-	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/rpanchyk/gvm/internal/models"
@@ -19,90 +16,40 @@ type Installer struct {
 }
 
 func (i Installer) Install(version string) error {
-	listFetcher := &ListFetcher{Config: i.Config}
-	sdks, err := listFetcher.Fetch()
-	if err != nil {
-		return fmt.Errorf("cannot get list of SDKs: %w", err)
-	}
-
-	sdk, err := i.findSdk(version, sdks)
-	if err != nil {
-		return fmt.Errorf("cannot get specified SDK: %w", err)
-	}
-	fmt.Printf("Found SDK: %+v\n", *sdk)
-
-	filePath, err := i.downloadSdk(sdk.URL, i.Config.DownloadDir)
-	if err != nil {
-		return fmt.Errorf("cannot download specified SDK: %w", err)
-	}
-	fmt.Printf("Downloaded SDK: %s\n", filePath)
-
-	installDir := filepath.Join(i.Config.InstallDir, "go"+sdk.Version)
+	installDir := filepath.Join(i.Config.InstallDir, "go"+version)
 	if _, err := os.Stat(installDir); os.IsNotExist(err) {
-		if err = i.unpackZip(filePath, i.Config.InstallDir); err != nil {
+		downloader := &Downloader{Config: i.Config}
+		sdk, err := downloader.Download(version)
+		if err != nil {
+			return fmt.Errorf("cannot download specified SDK: %w", err)
+		}
+
+		if err = i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
 			return fmt.Errorf("cannot unpack specified SDK: %w", err)
 		}
 
 		tempDir := filepath.Join(i.Config.InstallDir, "go")
 		err = os.Rename(tempDir, installDir)
 		if err != nil {
-			return fmt.Errorf("cannot rename specified SDK: %w", err)
+			return fmt.Errorf("cannot rename directory for specified SDK: %w", err)
 		}
+		fmt.Printf("SDK has been installed: %s\n", installDir)
 	} else {
-		fmt.Printf("Installed SDK: %s\n", installDir)
+		fmt.Printf("SDK already installed: %s\n", installDir)
 	}
 
-	localDir := filepath.Join(i.Config.LocalDir, "go"+sdk.Version)
-	for _, dir := range []string{"bin", "pkg"} {
-		dirPath := filepath.Join(localDir, dir)
-		if err = os.MkdirAll(dirPath, os.ModePerm); err != nil {
-			return fmt.Errorf("cannot create dir: %s error: %w", dirPath, err)
+	localDir := filepath.Join(i.Config.LocalDir, "go"+version)
+	if _, err := os.Stat(localDir); os.IsNotExist(err) {
+		for _, dir := range []string{"bin", "pkg"} {
+			dirPath := filepath.Join(localDir, dir)
+			if err = os.MkdirAll(dirPath, os.ModePerm); err != nil {
+				return fmt.Errorf("cannot create dir: %s error: %w", dirPath, err)
+			}
 		}
+		fmt.Printf("Local directory created: %s\n", localDir)
 	}
-	fmt.Printf("Local directory created: %s\n", localDir)
 
 	return nil
-}
-
-func (i Installer) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
-	for _, sdk := range sdks {
-		if sdk.Version == version && sdk.Os == runtime.GOOS && sdk.Arch == runtime.GOARCH {
-			return &sdk, nil
-		}
-	}
-	return nil, fmt.Errorf("version %s not found", version)
-}
-
-func (i Installer) downloadSdk(fileUrl, dir string) (string, error) {
-	fileName := path.Base(fileUrl)
-	filePath := filepath.Join(dir, fileName)
-	if _, err := os.Stat(filePath); err == nil {
-		fmt.Printf("File %s has been already downloaded\n", filePath)
-		return filePath, nil
-	}
-
-	resp, err := http.Get(fileUrl)
-	if err != nil {
-		return "", fmt.Errorf("cannot get data from url: %s error: %w", fileUrl, err)
-	}
-	defer resp.Body.Close()
-
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("cannot create dir: %s error: %w", dir, err)
-	}
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		return "", fmt.Errorf("cannot create file: %s error: %w", filePath, err)
-	}
-	defer file.Close()
-
-	if _, err = io.Copy(file, resp.Body); err != nil {
-		return "", fmt.Errorf("cannot save file: %s error: %w", filePath, err)
-	}
-
-	fmt.Printf("File %s has been downloaded\n", filePath)
-	return filePath, nil
 }
 
 func (i Installer) unpackZip(src, dst string) error {

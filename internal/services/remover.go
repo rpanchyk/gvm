@@ -135,16 +135,16 @@ func (r Remover) setWindowsUserEnvVar(name, value string) error {
 func (r Remover) removeWindowsUserEnvVarIfEquals(name, value string) error {
 	// fmt.Printf("Removing %s user env var\n", name)
 
-	// envVar, ok := os.LookupEnv(name)
-	_, ok := os.LookupEnv(name)
+	envVar, ok := os.LookupEnv(name)
 	if !ok {
 		fmt.Printf("%s user env var is not found\n", name)
 		return nil
 	}
 	// if envVar != value {
-	// 	fmt.Printf("%s user env var differs from %s\n", envVar, value)
-	// 	return nil
-	// }
+	if !strings.HasPrefix(envVar, value) {
+		fmt.Printf("%s user env var differs from %s\n", envVar, value)
+		return nil
+	}
 	if err := r.removeWindowsUserEnvVar(name); err != nil {
 		return fmt.Errorf("cannot remove %s: %w", name, err)
 	}

@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"sort"
@@ -49,6 +51,23 @@ func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
 	}
+
+	for i := 0; i < len(sdks); i++ {
+		downloadedFile := filepath.Join(f.Config.DownloadDir, filepath.Base(sdks[i].URL))
+		if _, err := os.Stat(downloadedFile); err == nil {
+			sdks[i].IsDownloaded = true
+		}
+
+		goRootDir := filepath.Join(f.Config.InstallDir, "go"+sdks[i].Version)
+		if _, err := os.Stat(goRootDir); err == nil {
+			sdks[i].IsInstalled = true
+		}
+
+		if envVar, ok := os.LookupEnv("GOROOT"); ok && envVar == goRootDir {
+			sdks[i].IsDefault = true
+		}
+	}
+
 	return sdks, nil
 }
 

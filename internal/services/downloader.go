@@ -16,25 +16,29 @@ type Downloader struct {
 	Config *models.Config
 }
 
-func (d Downloader) Download(version string) error {
+func (d Downloader) Download(version string) (*models.Sdk, error) {
 	listFetcher := &ListFetcher{Config: d.Config}
 	sdks, err := listFetcher.FetchAll()
 	if err != nil {
-		return fmt.Errorf("cannot get list of SDKs: %w", err)
+		return nil, fmt.Errorf("cannot get list of SDKs: %w", err)
 	}
 
 	sdk, err := d.findSdk(version, sdks)
 	if err != nil {
-		return fmt.Errorf("cannot get specified SDK: %w", err)
+		return nil, fmt.Errorf("cannot find specified SDK: %w", err)
 	}
 	fmt.Printf("Found SDK: %+v\n", *sdk)
 
 	filePath, err := d.downloadSdk(sdk.URL, d.Config.DownloadDir)
 	if err != nil {
-		return fmt.Errorf("cannot download specified SDK: %w", err)
+		return nil, fmt.Errorf("cannot download specified SDK: %w", err)
 	}
-	fmt.Printf("Downloaded SDK: %s\n", filePath)
-	return nil
+
+	sdk.FilePath = filePath
+	sdk.IsDownloaded = true
+
+	fmt.Printf("Downloaded SDK: %+v\n", *sdk)
+	return sdk, nil
 }
 
 func (d Downloader) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
@@ -50,7 +54,7 @@ func (d Downloader) downloadSdk(fileUrl, dir string) (string, error) {
 	fileName := path.Base(fileUrl)
 	filePath := filepath.Join(dir, fileName)
 	if _, err := os.Stat(filePath); err == nil {
-		fmt.Printf("File %s has been already downloaded\n", filePath)
+		fmt.Printf("SDK %s has been already downloaded\n", filePath)
 		return filePath, nil
 	}
 
@@ -74,6 +78,6 @@ func (d Downloader) downloadSdk(fileUrl, dir string) (string, error) {
 		return "", fmt.Errorf("cannot save file: %s error: %w", filePath, err)
 	}
 
-	fmt.Printf("File %s has been downloaded\n", filePath)
+	fmt.Printf("SDK %s has been downloaded\n", filePath)
 	return filePath, nil
 }

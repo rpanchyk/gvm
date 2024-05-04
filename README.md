@@ -7,6 +7,7 @@ A version manager for Golang SDKs.
 1. `gvm help` - shows help
 1. `gvm version` - shows version
 1. `gvm list` - shows list of available Go versions
+1. `gvm download {version}` - download specified Go version
 1. `gvm install {version}` - install specified Go version
 1. `gvm default {version}` - set specified Go version as default
 1. `gvm update` - install the latest Go version

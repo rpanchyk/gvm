@@ -15,6 +15,7 @@ var listCmd = &cobra.Command{
 		configService := &services.Config{}
 		config, err := configService.GetConfig()
 		if err != nil {
+			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Printf("Parsed config: %+v\n", *config)
@@ -22,11 +23,23 @@ var listCmd = &cobra.Command{
 		listFetcher := services.ListFetcher{Config: config}
 		sdks, err := listFetcher.Fetch()
 		if err != nil {
+			fmt.Println(err)
 			os.Exit(1)
 		}
-
 		for _, sdk := range sdks {
-			fmt.Println(" ", sdk.Version, sdk.Os, sdk.Arch, sdk.URL)
+			defaultMarker := " "
+			if sdk.IsDefault {
+				defaultMarker = "*"
+			}
+			downloadedMarker := " "
+			if sdk.IsDownloaded {
+				downloadedMarker = "[downloaded]"
+			}
+			installedMarker := " "
+			if sdk.IsInstalled {
+				installedMarker = "[installed]"
+			}
+			fmt.Println(defaultMarker, sdk.Version, sdk.Os, sdk.Arch, downloadedMarker, installedMarker)
 		}
 	},
 }
