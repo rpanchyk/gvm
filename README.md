@@ -20,6 +20,17 @@ The following is shown if `gvm` executed:
 ```
 Usage:
   gvm [flags]
+  gvm [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  default     Set specified Go version as default
+  download    Download specified Go version
+  help        Help about any command
+  install     Install specified Go version
+  list        Shows list of available Go versions
+  remove      Remove specified Go version
+  version     Shows version of gvm
 
 Flags:
   -h, --help   help for gvm

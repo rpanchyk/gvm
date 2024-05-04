@@ -6,7 +6,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 	"syscall"
 
@@ -32,13 +31,13 @@ func (d Defaulter) setWindows(version string) error {
 	if _, err := os.Stat(goRootDir); os.IsNotExist(err) {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goRootDir)
 	}
-	if err := d.setWindowsUserEnvVar("GOROOT", goRootDir); err != nil {
-		return fmt.Errorf("cannot set GOROOT: %w", err)
-	}
-
 	goPathDir := filepath.Join(d.Config.LocalDir, "go"+version)
 	if _, err := os.Stat(goPathDir); os.IsNotExist(err) {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goPathDir)
+	}
+
+	if err := d.setWindowsUserEnvVar("GOROOT", goRootDir); err != nil {
+		return fmt.Errorf("cannot set GOROOT: %w", err)
 	}
 	if err := d.setWindowsUserEnvVar("GOPATH", goPathDir); err != nil {
 		return fmt.Errorf("cannot set GOPATH: %w", err)
@@ -92,18 +91,18 @@ func (d Defaulter) setWindowsUserEnvVar(name, value string) error {
 }
 
 func (d Defaulter) updateWindowsPathVar(values []string) error {
-	listFetcher := &ListFetcher{Config: d.Config}
-	sdks, err := listFetcher.FetchAll()
-	if err != nil {
-		return fmt.Errorf("cannot get list of SDKs: %w", err)
-	}
+	// listFetcher := &ListFetcher{Config: d.Config}
+	// sdks, err := listFetcher.FetchAll()
+	// if err != nil {
+	// 	return fmt.Errorf("cannot get list of SDKs: %w", err)
+	// }
 
-	sdkBinDirs := []string{}
-	for _, sdk := range sdks {
-		installBinDir := filepath.Join(d.Config.InstallDir, "go"+sdk.Version, "bin")
-		localBinDir := filepath.Join(d.Config.LocalDir, "go"+sdk.Version, "bin")
-		sdkBinDirs = append(sdkBinDirs, installBinDir, localBinDir)
-	}
+	// sdkBinDirs := []string{}
+	// for _, sdk := range sdks {
+	// 	installBinDir := filepath.Join(d.Config.InstallDir, "go"+sdk.Version, "bin")
+	// 	localBinDir := filepath.Join(d.Config.LocalDir, "go"+sdk.Version, "bin")
+	// 	sdkBinDirs = append(sdkBinDirs, installBinDir, localBinDir)
+	// }
 
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -122,9 +121,12 @@ func (d Defaulter) updateWindowsPathVar(values []string) error {
 	userPathEnvVar := []string{}
 	for _, path := range strings.Split(oldPathEnvVar, ";") {
 		if strings.HasPrefix(path, userHomeDir) {
-			if slices.Contains(sdkBinDirs, path) {
+			if strings.HasPrefix(path, d.Config.InstallDir) || strings.HasPrefix(path, d.Config.LocalDir) {
 				continue // actually, removing
 			}
+			// if slices.Contains(sdkBinDirs, path) {
+			// 	continue // actually, removing
+			// }
 			userPathEnvVar = append(userPathEnvVar, path)
 		}
 	}
