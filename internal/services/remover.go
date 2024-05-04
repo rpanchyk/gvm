@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"syscall"
@@ -18,6 +19,13 @@ type Remover struct {
 }
 
 func (r Remover) Remove(version string) error {
+	if runtime.GOOS == "windows" {
+		return r.removeWindows(version)
+	}
+	return r.removeUnix(version)
+}
+
+func (r Remover) removeWindows(version string) error {
 	goRootDir := filepath.Join(r.Config.InstallDir, "go"+version)
 	if _, err := os.Stat(goRootDir); os.IsNotExist(err) {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goRootDir)
@@ -178,4 +186,8 @@ func (r Remover) removeWindowsUserEnvVar(name string) error {
 
 	fmt.Printf("User environment variable %s has been removed\n", name)
 	return nil
+}
+
+func (r Remover) removeUnix(version string) error {
+	panic("not implemented")
 }
