@@ -44,13 +44,7 @@ func (d Defaulter) setWindows(version string) error {
 		return fmt.Errorf("cannot set GOPATH: %w", err)
 	}
 
-	// goRootBinDir := filepath.Join(goRootDir, "bin")
-	goRootBinDir := "%GOROOT%\\bin"
-	// goPathBinDir := filepath.Join(goPathDir, "bin")
-	goPathBinDir := "%GOPATH%\\bin"
-
-	// goBinDirs := []string{filepath.Join(goRootDir, "bin"), filepath.Join(goPathDir, "bin")}
-	goBinDirs := []string{goRootBinDir, goPathBinDir}
+	goBinDirs := []string{"%GOROOT%\\bin", "%GOPATH%\\bin"}
 	if err := d.updateWindowsPathVar(goBinDirs); err != nil {
 		return fmt.Errorf("cannot add %s to Path: %w", goBinDirs, err)
 	}
@@ -97,33 +91,6 @@ func (d Defaulter) setWindowsUserEnvVar(name, value string) error {
 	return nil
 }
 
-func (d Defaulter) setWindowsSystemEnvVar(name, value string) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("cannot get current directory: %w", err)
-	}
-
-	// Request Admin Permissions in Windows
-	// https://gist.github.com/jerblack/d0eb182cc5a1c1d92d92a4c4fcc416c6
-	// Run: setx GOROOT /usr/local/go /M
-	verb := "runas"
-	exe := "setx"
-	args := fmt.Sprintf("%s \"%s\" /M", name, value)
-
-	verbPtr, _ := syscall.UTF16PtrFromString(verb)
-	exePtr, _ := syscall.UTF16PtrFromString(exe)
-	argPtr, _ := syscall.UTF16PtrFromString(args)
-	cwdPtr, _ := syscall.UTF16PtrFromString(cwd)
-	showCmd := int32(0) // SW_HIDE
-
-	if err = windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd); err != nil {
-		return fmt.Errorf("cannot set global environment variable: %w", err)
-	}
-
-	fmt.Printf("System environment variable %s has been persisted as %s\n", name, value)
-	return nil
-}
-
 func (d Defaulter) updateWindowsPathVar(values []string) error {
 	listFetcher := &ListFetcher{Config: d.Config}
 	sdks, err := listFetcher.FetchAll()
@@ -160,7 +127,7 @@ func (d Defaulter) updateWindowsPathVar(values []string) error {
 		}
 		if started {
 			if slices.Contains(sdkBinDirs, path) {
-				continue
+				continue // skip existing
 			}
 			userPathEnvVar = append(userPathEnvVar, path)
 		}
