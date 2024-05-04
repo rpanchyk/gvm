@@ -70,9 +70,10 @@ filter_arch = true
 - Verify specified SDK version is available.
 - Download archive from https://go.dev/dl page.
 - (Not implemented) Verify checksum of fetched archive file.
-- Extract archive to `{sdk_dir}/go{version}` directory.
-- (Not implemented) Set `GOROOT` and `GOPATH` env variables.
-- (Not implemented) Update `PATH` env variable to `GOROOT/bin` and `GOPATH/bin` dirs.
+- Extract archive to `{install_dir}/go{version}` directory.
+- Create `{local_dir}/go{version}` directory.
+- Set `GOROOT` and `GOPATH` env variables (Implemented for Windows only so far).
+- Update `PATH` env variable with `GOROOT/bin` and `GOPATH/bin` (Implemented for Windows only so far).
 
 ## Disclaimer
 
