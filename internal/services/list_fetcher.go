@@ -135,6 +135,5 @@ func (f ListFetcher) reduce(sdks []models.Sdk) ([]models.Sdk, error) {
 	}
 
 	clear(sdks)
-
 	return res, nil
 }

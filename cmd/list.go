@@ -24,7 +24,6 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			os.Exit(1)
 		}
-		// fmt.Printf("sdks: %v\n", sdks)
 
 		for _, sdk := range sdks {
 			fmt.Println(" ", sdk.Version, sdk.Os, sdk.Arch, sdk.URL)

@@ -10,7 +10,7 @@ import (
 
 var defaultCmd = &cobra.Command{
 	Use:   "default",
-	Short: "set specified Go version as default",
+	Short: "Set specified Go version as default",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		configService := &services.Config{}
