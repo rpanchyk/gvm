@@ -57,6 +57,7 @@ func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
 		if _, err := os.Stat(downloadedFile); err == nil {
 			sdks[i].IsDownloaded = true
 		}
+		sdks[i].FilePath = downloadedFile
 
 		goRootDir := filepath.Join(f.Config.InstallDir, "go"+sdks[i].Version)
 		if _, err := os.Stat(goRootDir); err == nil {
