@@ -2,6 +2,42 @@
 
 A version manager for Golang SDKs.
 
+## Installation
+
+1. Unpack installation archive to `$HOME` directory.
+1. Add `$HOME/.gvm` to `$PATH` environment variable.
+
+## Configuration
+
+File `$HOME/.gvm/config.toml` is single configuration file.
+
+```toml
+# URL where Go versions are looked
+release_url = "https://go.dev/dl/"
+
+# Directory where SDK archives are downloaded (absolute or relative path).
+download_dir = "./downloads"
+
+# Directory where SDKs are installed.
+# Typically, it is GOROOT env.
+# Can be absolute or relative path.
+install_dir = "./sdk"
+
+# Directory where local binaries and cache located.
+# Typically, it is GOPATH env.
+# Can be absolute or relative path.
+local_dir = "./local"
+
+# Max versions number to show in list
+limit = 10
+
+# Show versions having same OS with current environment
+filter_os = true
+
+# Show versions having same architecture with current environment
+filter_arch = true
+```
+
 ## Usage
 
 The following is shown if `gvm --help` executed:
@@ -24,45 +60,6 @@ Available Commands:
 
 Flags:
   -h, --help   help for gvm
-```
-
-## Structure
-
-The `gvm` is installed to `~/.gvm` directory.
-
-### Executables
-
-Directory `~/.gvm/bin` contains executables.
-
-### Configuration
-
-File `~/.gvm/config.toml` is a configuration file.
-
-```toml
-# URL where Go versions are looked
-all_releases_url = "https://go.dev/dl/"
-
-# Directory where SDKs will be downloaded (absolute or relative path).
-download_dir = "./downloads"
-
-# Directory where SDKs will be installed.
-# Typically, it is GOROOT env.
-# Can be absolute or relative path.
-install_dir = "./sdk"
-
-# Directory where local binaries and cache located.
-# Typically, it is GOPATH env.
-# Can be absolute or relative path.
-local_dir = "./local"
-
-# Max versions number to show in list
-limit = 10
-
-# Show versions having same OS with current environment
-filter_os = true
-
-# Show versions having same architecture with current environment
-filter_arch = true
 ```
 
 ## How it works
