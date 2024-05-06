@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -109,7 +110,9 @@ func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
 			continue
 		}
 
-		sdks = append(sdks, sdk)
+		if !slices.Contains(sdks, sdk) {
+			sdks = append(sdks, sdk)
+		}
 	}
 
 	return sdks, nil
