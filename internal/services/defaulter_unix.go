@@ -80,7 +80,7 @@ func (d PlatformDefaulter) addGvmProfile(filePath, cfgString string) error {
 	}
 	defer file.Close()
 
-	if _, err := file.WriteString(cfgString); err != nil {
+	if _, err := file.WriteString("\n" + cfgString + "\n"); err != nil {
 		return fmt.Errorf("could not write file %s: %w", filePath, err)
 	}
 	return nil
