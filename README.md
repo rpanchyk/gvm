@@ -15,7 +15,8 @@ File `$HOME/.gvm/config.toml` is single configuration file.
 # URL where Go versions are looked.
 release_url = "https://go.dev/dl/"
 
-# Directory where SDK archives are downloaded (absolute or relative path).
+# Directory where SDK archives are downloaded.
+# Can be absolute or relative path.
 download_dir = "./downloads"
 
 # Directory where SDKs are installed.
