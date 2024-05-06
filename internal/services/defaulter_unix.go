@@ -41,7 +41,7 @@ func (d PlatformDefaulter) Set(version string) error {
 		return fmt.Errorf("could not update gvm profile in file %s: %w", gvmProfileFile, err)
 	}
 
-	fmt.Printf("gvm profile is updated in file %s\n", gvmProfileFile)
+	fmt.Printf("User environment is set to go%s version as default\n", version)
 	return nil
 }
 
@@ -109,5 +109,6 @@ func (d PlatformDefaulter) updateGvmProfile(filePath, version string) error {
 		}
 	}
 
+	fmt.Printf("gvm profile is updated in file %s\n", filePath)
 	return nil
 }

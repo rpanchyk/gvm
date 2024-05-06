@@ -12,7 +12,7 @@ A version manager for Golang SDKs.
 File `$HOME/.gvm/config.toml` is single configuration file.
 
 ```toml
-# URL where Go versions are looked
+# URL where Go versions are looked.
 release_url = "https://go.dev/dl/"
 
 # Directory where SDK archives are downloaded (absolute or relative path).
@@ -28,14 +28,19 @@ install_dir = "./sdk"
 # Can be absolute or relative path.
 local_dir = "./local"
 
-# Max versions number to show in list
+# Max versions number to show in list.
 limit = 10
 
-# Show versions having same OS with current environment
+# Show versions having same OS with current environment.
 filter_os = true
 
-# Show versions having same architecture with current environment
+# Show versions having same architecture with current environment.
 filter_arch = true
+
+# Defines in which file is added loading config string.
+# Non-windows property.
+# Examples: ~/.profile, ~/.bashrc, ~/.zshrc, etc.
+unix_shell_config = "~/.profile"
 ```
 
 ## Usage
@@ -60,6 +65,59 @@ Available Commands:
 
 Flags:
   -h, --help   help for gvm
+```
+
+For example, let's add Go new version.
+
+1. Show available Go versions list: `gvm list`
+
+```
+  1.22.2 linux amd64
+  1.22.1 linux amd64
+  1.22.0 linux amd64
+  1.21.9 linux amd64
+  1.21.8 linux amd64
+  1.21.7 linux amd64
+  ...
+```
+
+2. Install Go `1.22.0` version: `gvm install 1.22.0`
+
+```
+SDK has been installed: /home/rus/.gvm/sdk/go1.22.0
+Local directory created: /home/rus/.gvm/local/go1.22.0
+```
+
+3. Set Go `1.22.0` version as default: `gvm default 1.22.0`
+
+```
+User environment is set to go1.22.0 version as default
+```
+
+4. (Important!) Restart terminal to apply changes.
+
+5. Check Go versions list again to see the asterisk near default version: `gvm list`
+
+```
+  1.22.2 linux amd64
+  1.22.1 linux amd64
+* 1.22.0 linux amd64 [downloaded] [installed]
+  1.21.9 linux amd64
+  1.21.8 linux amd64
+  1.21.7 linux amd64
+  ...
+```
+
+6. Verify everything is expected: `go version && go env GOROOT GOPATH && echo $GOROOT && echo $GOPATH`
+
+```
+go version go1.22.0 linux/amd64
+
+/home/user/.gvm/sdk/go1.22.0
+/home/user/.gvm/local/go1.22.0
+
+/home/user/.gvm/sdk/go1.22.0
+/home/user/.gvm/local/go1.22.0
 ```
 
 ## How it works

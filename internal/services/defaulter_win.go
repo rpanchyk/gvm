@@ -39,6 +39,7 @@ func (d PlatformDefaulter) Set(version string) error {
 		return fmt.Errorf("cannot add %s to Path: %w", goBinDirs, err)
 	}
 
+	fmt.Printf("User environment is set to go%s version as default\n", version)
 	return nil
 }
 

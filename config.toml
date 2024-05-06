@@ -1,4 +1,4 @@
-# URL where Go versions are looked
+# URL where Go versions are looked.
 release_url = "https://go.dev/dl/"
 
 # Directory where SDK archives are downloaded (absolute or relative path).
@@ -14,7 +14,7 @@ install_dir = "./sdk"
 # Can be absolute or relative path.
 local_dir = "./local"
 
-# Max versions number to show in list
+# Max versions number to show in list.
 limit = 10
 
 # Show versions having same OS with current environment.
