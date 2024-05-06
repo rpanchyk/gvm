@@ -3,15 +3,14 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
 	"os"
-	"os/user"
+	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/rpanchyk/gvm/internal/models"
-	"golang.org/x/sys/windows"
 )
 
 type PlatformDefaulter struct {
@@ -19,12 +18,6 @@ type PlatformDefaulter struct {
 }
 
 func (d PlatformDefaulter) Set(version string) error {
-	return d.setWindows(version)
-}
-
-// How to edit, clear, and delete environment variables in Windows
-// https://www.digitalcitizen.life/remove-edit-clear-environment-variables/
-func (d PlatformDefaulter) setWindows(version string) error {
 	goRootDir := filepath.Join(d.Config.InstallDir, "go"+version)
 	if _, err := os.Stat(goRootDir); os.IsNotExist(err) {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goRootDir)
@@ -34,113 +27,104 @@ func (d PlatformDefaulter) setWindows(version string) error {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goPathDir)
 	}
 
-	if err := d.setWindowsUserEnvVar("GOROOT", goRootDir); err != nil {
+	if err := d.setUserEnvVar("GOROOT", goRootDir); err != nil {
 		return fmt.Errorf("cannot set GOROOT: %w", err)
 	}
-	if err := d.setWindowsUserEnvVar("GOPATH", goPathDir); err != nil {
+	if err := d.setUserEnvVar("GOPATH", goPathDir); err != nil {
 		return fmt.Errorf("cannot set GOPATH: %w", err)
 	}
 
 	goBinDirs := []string{"%GOROOT%\\bin", "%GOPATH%\\bin"}
-	if err := d.updateWindowsPathVar(goBinDirs); err != nil {
+	if err := d.updatePathUserEnvVar(goBinDirs); err != nil {
 		return fmt.Errorf("cannot add %s to Path: %w", goBinDirs, err)
 	}
 
 	return nil
 }
 
-func (d PlatformDefaulter) setWindowsUserEnvVar(name, value string) error {
-	hostname, err := os.Hostname()
+func (d PlatformDefaulter) getUserEnvVar(name string) (string, error) {
+	command := fmt.Sprintf("[System.Environment]::GetEnvironmentVariable(\"%s\",\"User\")", name)
+	value, err := d.runPowershellCommand(command)
 	if err != nil {
-		return fmt.Errorf("cannot get hostname: %w", err)
+		return "", fmt.Errorf("powershell error: %w", err)
 	}
-	fmt.Printf("Hostname: %s\n", hostname)
+	fmt.Printf("Get user environment variable: %s=%s\n", name, value)
+	return value, nil
+}
 
-	user, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("cannot get current user: %w", err)
-	}
-	fmt.Printf("Username: %s\n", user.Name)
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("cannot get current directory: %w", err)
+func (d PlatformDefaulter) setUserEnvVar(name, value string) error {
+	command := fmt.Sprintf("[Environment]::SetEnvironmentVariable(\"%s\",\"%s\",\"User\")", name, value)
+	if _, err := d.runPowershellCommand(command); err != nil {
+		return fmt.Errorf("powershell error: %w", err)
 	}
 
-	// Request Admin Permissions in Windows
-	// https://gist.github.com/jerblack/d0eb182cc5a1c1d92d92a4c4fcc416c6
-	// Run: setx /S <host> /U <user> GOROOT /usr/local/go
-	verb := "runas"
-	exe := "setx"
-	args := fmt.Sprintf("/S %s /U %s %s \"%s\"", hostname, user.Name, name, value)
-
-	verbPtr, _ := syscall.UTF16PtrFromString(verb)
-	exePtr, _ := syscall.UTF16PtrFromString(exe)
-	argPtr, _ := syscall.UTF16PtrFromString(args)
-	cwdPtr, _ := syscall.UTF16PtrFromString(cwd)
-	showCmd := int32(0) // SW_HIDE
-
-	if err = windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd); err != nil {
-		return fmt.Errorf("cannot set global environment variable: %w", err)
-	}
-
-	fmt.Printf("User environment variable %s has been persisted as %s\n", name, value)
+	fmt.Printf("Set user environment variable: %s=%s\n", name, value)
 	return nil
 }
 
-func (d PlatformDefaulter) updateWindowsPathVar(values []string) error {
-	// listFetcher := &ListFetcher{Config: d.Config}
-	// sdks, err := listFetcher.FetchAll()
-	// if err != nil {
-	// 	return fmt.Errorf("cannot get list of SDKs: %w", err)
-	// }
-
-	// sdkBinDirs := []string{}
-	// for _, sdk := range sdks {
-	// 	installBinDir := filepath.Join(d.Config.InstallDir, "go"+sdk.Version, "bin")
-	// 	localBinDir := filepath.Join(d.Config.LocalDir, "go"+sdk.Version, "bin")
-	// 	sdkBinDirs = append(sdkBinDirs, installBinDir, localBinDir)
-	// }
-
+func (d PlatformDefaulter) updatePathUserEnvVar(values []string) error {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("cannot get user home: %w", err)
 	}
 
-	oldPathEnvVar, ok := os.LookupEnv("Path")
-	if !ok {
-		return fmt.Errorf("cannot get Path env var")
+	oldPathEnvVar, err := d.getUserEnvVar("Path")
+	if err != nil {
+		return fmt.Errorf("powershell error: %w", err)
 	}
-	fmt.Println("Path:", oldPathEnvVar)
 
-	// Windows combines SystemEnv.Path and UserEnv.Path variables when we get it.
-	// So, we go by splitted Path until faced with any path starting with user home directory.
-	// This identifies starting of UserEnv.Path value.
-	userPathEnvVar := []string{}
+	pathEnvVar := []string{}
 	for _, path := range strings.Split(oldPathEnvVar, ";") {
-		if strings.HasPrefix(path, userHomeDir) {
-			if strings.HasPrefix(path, d.Config.InstallDir) || strings.HasPrefix(path, d.Config.LocalDir) {
-				continue // actually, removing
-			}
-			// if slices.Contains(sdkBinDirs, path) {
-			// 	continue // actually, removing
-			// }
-			userPathEnvVar = append(userPathEnvVar, path)
+		if strings.TrimSpace(path) == "" {
+			continue
 		}
+		if strings.HasPrefix(path, d.Config.InstallDir) || strings.HasPrefix(path, d.Config.LocalDir) {
+			continue // actually, removing
+		}
+		if strings.HasPrefix(path, "%GOROOT%") || strings.HasPrefix(path, "%GOPATH%") {
+			continue // actually, removing
+		}
+		pathEnvVar = append(pathEnvVar, path)
 	}
-	userPathEnvVar = append(userPathEnvVar, values...)
+	pathEnvVar = append(pathEnvVar, values...)
 
-	normalizedUserPathEnvVar := []string{}
-	for _, path := range userPathEnvVar {
+	normalizedPathEnvVar := []string{}
+	for _, path := range pathEnvVar {
 		normalizedPath := strings.Replace(path, userHomeDir, "%USERPROFILE%", 1)
-		normalizedUserPathEnvVar = append(normalizedUserPathEnvVar, normalizedPath)
+		normalizedPathEnvVar = append(normalizedPathEnvVar, normalizedPath)
 	}
 
-	updatedPath := strings.Join(normalizedUserPathEnvVar, ";")
-	if err := d.setWindowsUserEnvVar("Path", updatedPath); err != nil {
+	updatedPath := strings.Join(normalizedPathEnvVar, ";")
+	if err := d.setUserEnvVar("Path", updatedPath); err != nil {
 		return fmt.Errorf("cannot update Path: %w", err)
 	}
 
 	fmt.Printf("User Path environment variable updated: %s\n", updatedPath)
 	return nil
+}
+
+func (d PlatformDefaulter) runPowershellCommand(command string) (string, error) {
+	powershell, err := exec.LookPath("powershell.exe")
+	if err != nil {
+		return "", fmt.Errorf("cannot find powershell in Path: %w", err)
+	}
+
+	args := []string{"-NoProfile", "-NonInteractive", command}
+	cmd := exec.Command(powershell, args...)
+
+	var stdOutBuf bytes.Buffer
+	var stdErrBuf bytes.Buffer
+	cmd.Stdout = &stdOutBuf
+	cmd.Stderr = &stdErrBuf
+
+	err = cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("executing powershell command error: %w", err)
+	}
+	stdOut, stdErr := stdOutBuf.String(), stdErrBuf.String()
+	if stdErr != "" {
+		return "", fmt.Errorf("executing powershell command failed: %s", stdErr)
+	}
+	fmt.Printf("Powershell command output: %s", stdOut)
+	return stdOut, nil
 }

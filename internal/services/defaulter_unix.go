@@ -11,9 +11,5 @@ type PlatformDefaulter struct {
 }
 
 func (d PlatformDefaulter) Set(version string) error {
-	return d.setUnix(version)
-}
-
-func (d PlatformDefaulter) setUnix(version string) error {
 	panic("not implemented")
 }
