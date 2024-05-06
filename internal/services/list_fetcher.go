@@ -64,8 +64,15 @@ func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
 			sdks[i].IsInstalled = true
 		}
 
-		if envVar, ok := os.LookupEnv("GOROOT"); ok && envVar == goRootDir {
-			sdks[i].IsDefault = true
+		if envVar, ok := os.LookupEnv("GOROOT"); ok {
+			if envVar == goRootDir {
+				sdks[i].IsDefault = true
+			} else {
+				goPathDir := filepath.Join(f.Config.LocalDir, "go"+sdks[i].Version)
+				if _, err := os.Stat(goPathDir); err == nil && strings.HasPrefix(envVar, goPathDir) {
+					sdks[i].IsDefault = true
+				}
+			}
 		}
 	}
 
