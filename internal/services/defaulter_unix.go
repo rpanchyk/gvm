@@ -23,7 +23,7 @@ func (d PlatformDefaulter) Set(version string) error {
 		return fmt.Errorf("cannot get user home directory: %w", err)
 	}
 
-	filePath := filepath.Join(userHomeDir, ".profile")
+	filePath := strings.Replace(d.Config.UnixShellConfig, "~", userHomeDir, 1)
 	cfgString := `[ -f "$HOME/.gvm/profile" ] && . "$HOME/.gvm/profile"`
 	hasGvmProfile, err := d.hasGvmProfile(filePath, cfgString)
 	if err != nil {
@@ -99,9 +99,9 @@ func (d PlatformDefaulter) updateGvmProfile(filePath, version string) error {
 	defer file.Close()
 
 	goRoot := filepath.Join(d.Config.InstallDir, "go"+version)
-	goRootEnvVar := "GOROOT=\"" + goRoot + "\""
-	goPathEnvVar := "GOPATH=\"" + filepath.Join(d.Config.LocalDir, "go"+version) + "\""
-	pathEnvVar := "PATH=\"$GOROOT/bin:$PATH\""
+	goRootEnvVar := "export GOROOT=\"" + goRoot + "\""
+	goPathEnvVar := "export GOPATH=\"" + filepath.Join(d.Config.LocalDir, "go"+version) + "\""
+	pathEnvVar := "export PATH=\"$GOROOT/bin:$PATH\""
 
 	for _, line := range []string{goRootEnvVar, goPathEnvVar, pathEnvVar} {
 		if _, err := file.WriteString(line + "\n"); err != nil {

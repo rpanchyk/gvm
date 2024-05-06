@@ -17,8 +17,13 @@ local_dir = "./local"
 # Max versions number to show in list
 limit = 10
 
-# Show versions having same OS with current environment
+# Show versions having same OS with current environment.
 filter_os = true
 
-# Show versions having same architecture with current environment
+# Show versions having same architecture with current environment.
 filter_arch = true
+
+# Defines in which file is added loading config string.
+# Non-windows property.
+# Examples: ~/.profile, ~/.bashrc, ~/.zshrc, etc.
+unix_shell_config = "~/.profile"
