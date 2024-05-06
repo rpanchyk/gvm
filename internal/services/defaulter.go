@@ -18,7 +18,7 @@ func (d Defaulter) Default(version string) error {
 	}
 	for _, sdk := range sdks {
 		if sdk.Version == version && sdk.IsDefault {
-			fmt.Printf("SDK version %s is already used as default", version)
+			fmt.Printf("SDK version %s is already used as default\n", version)
 			return nil
 		}
 	}

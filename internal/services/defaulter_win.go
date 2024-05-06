@@ -85,7 +85,7 @@ func (d PlatformDefaulter) runPowershellCommand(command string) (string, error) 
 	if stdErr != "" {
 		return "", fmt.Errorf("executing powershell command failed: %s", stdErr)
 	}
-	fmt.Printf("Powershell command output: %s", stdOut)
+	fmt.Printf("Powershell command output: %s\n", stdOut)
 	return stdOut, nil
 }
 

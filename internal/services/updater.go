@@ -20,7 +20,7 @@ func (u Updater) Update() (*models.Sdk, error) {
 	version := sdks[0].Version
 	for _, sdk := range sdks {
 		if sdk.IsDefault && sdk.Version == version {
-			fmt.Printf("SDK version %s is already the latest", version)
+			fmt.Printf("SDK version %s is already the latest\n", version)
 			return &sdks[0], nil
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/rpanchyk/gvm/internal/services"
+	"github.com/rpanchyk/gvm/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -13,16 +14,8 @@ var downloadCmd = &cobra.Command{
 	Short: "Download specified Go version",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		configService := &services.Config{}
-		config, err := configService.GetConfig()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		fmt.Printf("Parsed config: %+v\n", *config)
-
-		downloader := &services.Downloader{Config: config}
-		if _, err = downloader.Download(args[0]); err != nil {
+		downloader := &services.Downloader{Config: &utils.Config}
+		if _, err := downloader.Download(args[0]); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

@@ -10,6 +10,7 @@ import (
 	"runtime"
 
 	"github.com/rpanchyk/gvm/internal/models"
+	"github.com/rpanchyk/gvm/internal/utils"
 )
 
 type Downloader struct {
@@ -17,7 +18,7 @@ type Downloader struct {
 }
 
 func (d Downloader) Download(version string) (*models.Sdk, error) {
-	listFetcher := &ListFetcher{Config: d.Config}
+	listFetcher := &ListFetcher{Config: &utils.Config}
 	sdks, err := listFetcher.FetchAll()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get list of SDKs: %w", err)
@@ -29,7 +30,7 @@ func (d Downloader) Download(version string) (*models.Sdk, error) {
 	}
 	fmt.Printf("Found SDK: %+v\n", *sdk)
 
-	filePath, err := d.downloadSdk(sdk.URL, d.Config.DownloadDir)
+	filePath, err := d.downloadSdk(sdk.URL, utils.Config.DownloadDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot download specified SDK: %w", err)
 	}
