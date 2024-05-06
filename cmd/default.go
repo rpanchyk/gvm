@@ -22,7 +22,7 @@ var defaultCmd = &cobra.Command{
 		fmt.Printf("Parsed config: %+v\n", *config)
 
 		defaulter := &services.Defaulter{Config: config}
-		if err = defaulter.Set(args[0]); err != nil {
+		if err = defaulter.Default(args[0]); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

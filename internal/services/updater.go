@@ -31,7 +31,7 @@ func (u Updater) Update() (*models.Sdk, error) {
 	}
 
 	defaulter := &Defaulter{Config: u.Config}
-	if err = defaulter.Set(version); err != nil {
+	if err = defaulter.Default(version); err != nil {
 		return nil, fmt.Errorf("cannot set default SDK %s version: %w", version, err)
 	}
 
