@@ -34,7 +34,7 @@ func (f ListFetcher) Fetch() ([]models.Sdk, error) {
 }
 
 func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
-	response, err := http.Get(f.Config.AllReleasesURL)
+	response, err := http.Get(f.Config.ReleaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("error making http request: %w", err)
 	}
@@ -83,7 +83,7 @@ func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
 	for _, parts := range r.FindAllStringSubmatch(s, -1) {
 		// fmt.Printf("%v\n", parts)
 
-		url, err := url.JoinPath(f.Config.AllReleasesURL, parts[1])
+		url, err := url.JoinPath(f.Config.ReleaseURL, parts[1])
 		if err != nil {
 			return nil, fmt.Errorf("error composing url: %w", err)
 		}

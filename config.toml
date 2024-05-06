@@ -1,10 +1,10 @@
 # URL where Go versions are looked
-all_releases_url = "https://go.dev/dl/"
+release_url = "https://go.dev/dl/"
 
-# Directory where SDKs will be downloaded (absolute or relative path).
+# Directory where SDK archives are downloaded (absolute or relative path).
 download_dir = "./downloads"
 
-# Directory where SDKs will be installed.
+# Directory where SDKs are installed.
 # Typically, it is GOROOT env.
 # Can be absolute or relative path.
 install_dir = "./sdk"
