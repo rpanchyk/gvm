@@ -1,7 +1,9 @@
 package services
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
@@ -24,8 +26,14 @@ func (i Installer) Install(version string) error {
 			return fmt.Errorf("cannot download specified SDK: %w", err)
 		}
 
-		if err = i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
-			return fmt.Errorf("cannot unpack specified SDK: %w", err)
+		if strings.HasSuffix(sdk.FilePath, ".zip") {
+			if err = i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
+				return fmt.Errorf("cannot unpack specified SDK: %w", err)
+			}
+		} else if strings.HasSuffix(sdk.FilePath, ".tar.gz") {
+			if err = i.UnpackTarGz(sdk.FilePath, i.Config.InstallDir); err != nil {
+				return fmt.Errorf("cannot unpack specified SDK: %w", err)
+			}
 		}
 
 		tempDir := filepath.Join(i.Config.InstallDir, "go")
@@ -74,8 +82,9 @@ func (i Installer) unpackZip(src, dst string) error {
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
-			panic(err)
+		dirPath := filepath.Dir(filePath)
+		if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+			return fmt.Errorf("could not create directory %s: %w", dirPath, err)
 		}
 
 		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
@@ -94,6 +103,55 @@ func (i Installer) unpackZip(src, dst string) error {
 
 		dstFile.Close()
 		fileInArchive.Close()
+	}
+
+	return nil
+}
+
+func (i Installer) UnpackTarGz(src, dst string) error {
+	archive, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("cannot open file: %s error: %w", src, err)
+	}
+	defer archive.Close()
+
+	uncompressedStream, err := gzip.NewReader(archive)
+	if err != nil {
+		return fmt.Errorf("cannot create reader for file: %s error: %w", src, err)
+	}
+
+	tarReader := tar.NewReader(uncompressedStream)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("cannot read entry in file: %s error: %w", src, err)
+		}
+
+		path := filepath.Join(dst, header.Name)
+		fileInfo := header.FileInfo()
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
+				return fmt.Errorf("could not create directory %s: %w", path, err)
+			}
+		case tar.TypeReg:
+			outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileInfo.Mode().Perm())
+			if err != nil {
+				return fmt.Errorf("could not create file %s: %w", path, err)
+			}
+			defer outFile.Close()
+			if _, err := io.Copy(outFile, tarReader); err != nil {
+				return fmt.Errorf("could not copy file %s: %w", path, err)
+			}
+		case tar.TypeSymlink:
+			os.Symlink(header.Linkname, path)
+		default:
+			return fmt.Errorf("unknown type: %s in %s", string(header.Typeflag), header.Name)
+		}
 	}
 
 	return nil

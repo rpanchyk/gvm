@@ -69,8 +69,8 @@ Flags:
 - Verify checksum of fetched archive file (Not implemented).
 - Extract archive to `{install_dir}/go{version}` directory.
 - Create `{local_dir}/go{version}` directory.
-- Set `GOROOT` and `GOPATH` env variables (Implemented for Windows only so far).
-- Update `PATH` env variable with `GOROOT/bin` and `GOPATH/bin` (Implemented for Windows only so far).
+- Set `GOROOT` and `GOPATH` env variables.
+- Update `PATH` env variable with `GOROOT/bin` and `GOPATH/bin`.
 
 ## Alternatives
 
