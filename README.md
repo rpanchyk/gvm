@@ -4,7 +4,7 @@ A version manager for Golang SDKs.
 
 ## Usage
 
-The following is shown if `gvm` executed:
+The following is shown if `gvm --help` executed:
 
 ```
 Usage:
@@ -74,6 +74,17 @@ filter_arch = true
 - Create `{local_dir}/go{version}` directory.
 - Set `GOROOT` and `GOPATH` env variables (Implemented for Windows only so far).
 - Update `PATH` env variable with `GOROOT/bin` and `GOPATH/bin` (Implemented for Windows only so far).
+
+## Alternatives
+
+This project was started for learning of Go Programming Language purposes. Since author is moving from Java world,
+initially it was inspired by [SDKMAN!](https://sdkman.io) but later found similar projects, like:
+
+- `moovweb/gvm` - https://github.com/moovweb/gvm
+- `GoTV` - https://go101.org/apps-and-libs/gotv.html
+
+Starting in Go `1.21` introduced [Go toolchain](https://go.dev/doc/toolchain), which is the standard library
+as well as the compiler, assembler, and other tools.
 
 ## Disclaimer
 
