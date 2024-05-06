@@ -42,16 +42,6 @@ func (d PlatformDefaulter) Set(version string) error {
 	return nil
 }
 
-func (d PlatformDefaulter) getUserEnvVar(name string) (string, error) {
-	command := fmt.Sprintf("[System.Environment]::GetEnvironmentVariable(\"%s\",\"User\")", name)
-	value, err := d.runPowershellCommand(command)
-	if err != nil {
-		return "", fmt.Errorf("powershell error: %w", err)
-	}
-	fmt.Printf("Get user environment variable: %s=%s\n", name, value)
-	return value, nil
-}
-
 func (d PlatformDefaulter) setUserEnvVar(name, value string) error {
 	command := fmt.Sprintf("[Environment]::SetEnvironmentVariable(\"%s\",\"%s\",\"User\")", name, value)
 	if _, err := d.runPowershellCommand(command); err != nil {
@@ -62,45 +52,14 @@ func (d PlatformDefaulter) setUserEnvVar(name, value string) error {
 	return nil
 }
 
-func (d PlatformDefaulter) updatePathUserEnvVar(values []string) error {
-	userHomeDir, err := os.UserHomeDir()
+func (d PlatformDefaulter) getUserEnvVar(name string) (string, error) {
+	command := fmt.Sprintf("[System.Environment]::GetEnvironmentVariable(\"%s\",\"User\")", name)
+	value, err := d.runPowershellCommand(command)
 	if err != nil {
-		return fmt.Errorf("cannot get user home: %w", err)
+		return "", fmt.Errorf("powershell error: %w", err)
 	}
-
-	oldPathEnvVar, err := d.getUserEnvVar("Path")
-	if err != nil {
-		return fmt.Errorf("powershell error: %w", err)
-	}
-
-	pathEnvVar := []string{}
-	for _, path := range strings.Split(oldPathEnvVar, ";") {
-		if strings.TrimSpace(path) == "" {
-			continue
-		}
-		if strings.HasPrefix(path, d.Config.InstallDir) || strings.HasPrefix(path, d.Config.LocalDir) {
-			continue // actually, removing
-		}
-		if strings.HasPrefix(path, "%GOROOT%") || strings.HasPrefix(path, "%GOPATH%") {
-			continue // actually, removing
-		}
-		pathEnvVar = append(pathEnvVar, path)
-	}
-	pathEnvVar = append(pathEnvVar, values...)
-
-	normalizedPathEnvVar := []string{}
-	for _, path := range pathEnvVar {
-		normalizedPath := strings.Replace(path, userHomeDir, "%USERPROFILE%", 1)
-		normalizedPathEnvVar = append(normalizedPathEnvVar, normalizedPath)
-	}
-
-	updatedPath := strings.Join(normalizedPathEnvVar, ";")
-	if err := d.setUserEnvVar("Path", updatedPath); err != nil {
-		return fmt.Errorf("cannot update Path: %w", err)
-	}
-
-	fmt.Printf("User Path environment variable updated: %s\n", updatedPath)
-	return nil
+	fmt.Printf("Get user environment variable: %s=%s\n", name, value)
+	return value, nil
 }
 
 func (d PlatformDefaulter) runPowershellCommand(command string) (string, error) {
@@ -127,4 +86,45 @@ func (d PlatformDefaulter) runPowershellCommand(command string) (string, error) 
 	}
 	fmt.Printf("Powershell command output: %s", stdOut)
 	return stdOut, nil
+}
+
+func (d PlatformDefaulter) updatePathUserEnvVar(values []string) error {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get user home: %w", err)
+	}
+
+	oldPathEnvVar, err := d.getUserEnvVar("Path")
+	if err != nil {
+		return fmt.Errorf("powershell error: %w", err)
+	}
+
+	pathEnvVar := []string{}
+	for _, path := range strings.Split(oldPathEnvVar, ";") {
+		if strings.TrimSpace(path) == "" {
+			continue
+		}
+		if strings.HasPrefix(path, d.Config.InstallDir) || strings.HasPrefix(path, d.Config.LocalDir) {
+			continue
+		}
+		if strings.HasPrefix(path, "%GOROOT%") || strings.HasPrefix(path, "%GOPATH%") {
+			continue
+		}
+		pathEnvVar = append(pathEnvVar, path)
+	}
+	pathEnvVar = append(pathEnvVar, values...)
+
+	normalizedPathEnvVar := []string{}
+	for _, path := range pathEnvVar {
+		normalizedPath := strings.Replace(path, userHomeDir, "%USERPROFILE%", 1)
+		normalizedPathEnvVar = append(normalizedPathEnvVar, normalizedPath)
+	}
+
+	updatedPath := strings.Join(normalizedPathEnvVar, ";")
+	if err := d.setUserEnvVar("Path", updatedPath); err != nil {
+		return fmt.Errorf("cannot update Path: %w", err)
+	}
+
+	fmt.Printf("User Path environment variable updated: %s\n", updatedPath)
+	return nil
 }
