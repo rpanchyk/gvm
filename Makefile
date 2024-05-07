@@ -1,4 +1,4 @@
-.PHONY: build deps build-linux build-macosx build-windows
+.PHONY: build deps build-linux-amd64 build-macosx-amd64 build-macosx-arm64 build-windows-amd64
 
 define make_build
 	rm -f builds/tmp/*
@@ -8,21 +8,23 @@ define make_build
 endef
 
 # Batch build
-build: deps build-linux build-macosx build-windows
+build: deps build-linux-amd64 build-macosx-amd64 build-macosx-arm64 build-windows-amd64
 
 # Dependencies
 deps:
 	go mod tidy && go mod vendor
 
 # Linux
-build-linux:
+build-linux-amd64:
 	$(call make_build,linux,amd64,gvm,linux)
 
 # MacOSX
-build-macosx:
+build-macosx-amd64:
 	$(call make_build,darwin,amd64,gvm,macosx)
+
+build-macosx-arm64:
 	$(call make_build,darwin,arm64,gvm,macosx)
 
 # Windows
-build-windows:
+build-windows-amd64:
 	$(call make_build,windows,amd64,gvm.exe,windows)
