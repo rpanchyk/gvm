@@ -1,12 +1,12 @@
 package models
 
 type Sdk struct {
-	URL          string
-	FilePath     string
-	Version      string
-	Os           string
-	Arch         string
-	IsDownloaded bool
-	IsInstalled  bool
-	IsDefault    bool
+	URL          string `json:"url"`
+	FilePath     string `json:"-"`
+	Version      string `json:"version"`
+	Os           string `json:"os"`
+	Arch         string `json:"arch"`
+	IsDownloaded bool   `json:"-"`
+	IsInstalled  bool   `json:"-"`
+	IsDefault    bool   `json:"-"`
 }
