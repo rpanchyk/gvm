@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 
 	"github.com/rpanchyk/gvm/internal/models"
 )
@@ -43,7 +42,7 @@ func (d Downloader) Download(version string) (*models.Sdk, error) {
 
 func (d Downloader) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
 	for _, sdk := range sdks {
-		if sdk.Version == version && sdk.Os == runtime.GOOS && sdk.Arch == runtime.GOARCH {
+		if sdk.Version == version {
 			return &sdk, nil
 		}
 	}

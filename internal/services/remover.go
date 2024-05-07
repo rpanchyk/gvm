@@ -12,37 +12,30 @@ type Remover struct {
 	Config *models.Config
 }
 
-func (r Remover) Remove(removeDownloaded bool, removeInstalled bool, version string) error {
+func (r Remover) Remove(version string, removeDownloaded, removeInstalled bool) error {
 	listFetcher := &ListFetcher{Config: r.Config}
 	sdks, err := listFetcher.FetchAll()
 	if err != nil {
 		return fmt.Errorf("cannot get list of SDKs: %w", err)
 	}
 
-	var foundSdk *models.Sdk
-	for _, sdk := range sdks {
-		if sdk.Version == version {
-			if sdk.IsDefault {
-				return fmt.Errorf("cannot remove SDK version %s since it is used as default", version)
-			}
-			foundSdk = &sdk
-			break
-		}
+	sdk, err := r.findSdk(version, sdks)
+	if err != nil {
+		return fmt.Errorf("cannot find specified SDK: %w", err)
 	}
-
-	if foundSdk == nil {
-		return fmt.Errorf("cannot find SDK version %s", version)
+	if sdk.IsDefault {
+		return fmt.Errorf("cannot remove SDK version %s since it is used as default", version)
 	}
-	fmt.Printf("Found SDK: %+v\n", *foundSdk)
+	fmt.Printf("Found SDK: %+v\n", *sdk)
 
 	if removeDownloaded {
-		if err := r.removeDownloaded(foundSdk); err != nil {
+		if err := r.removeDownloaded(sdk); err != nil {
 			return err
 		}
 	}
 
 	if removeInstalled {
-		if err := r.removeInstalled(foundSdk); err != nil {
+		if err := r.removeInstalled(sdk); err != nil {
 			return err
 		}
 	}
@@ -50,9 +43,18 @@ func (r Remover) Remove(removeDownloaded bool, removeInstalled bool, version str
 	return nil
 }
 
+func (r Remover) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
+	for _, sdk := range sdks {
+		if sdk.Version == version {
+			return &sdk, nil
+		}
+	}
+	return nil, fmt.Errorf("version %s not found", version)
+}
+
 func (r Remover) removeDownloaded(sdk *models.Sdk) error {
 	if !sdk.IsDownloaded {
-		fmt.Printf("SDK %s version doesn't downloaded\n", sdk.Version)
+		fmt.Printf("SDK %s version is not downloaded\n", sdk.Version)
 		return nil
 	}
 
@@ -66,7 +68,7 @@ func (r Remover) removeDownloaded(sdk *models.Sdk) error {
 
 func (r Remover) removeInstalled(sdk *models.Sdk) error {
 	if !sdk.IsInstalled {
-		fmt.Printf("SDK %s version doesn't installed\n", sdk.Version)
+		fmt.Printf("SDK %s version is not installed\n", sdk.Version)
 		return nil
 	}
 

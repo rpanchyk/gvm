@@ -11,10 +11,10 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Install the latest Go version",
+	Short: "Update Go to the latest version and set it as default",
 	Run: func(cmd *cobra.Command, args []string) {
 		updater := &services.Updater{Config: &utils.Config}
-		if _, err := updater.Update(); err != nil {
+		if err := updater.Update(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

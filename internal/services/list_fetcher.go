@@ -81,13 +81,12 @@ func (f ListFetcher) FetchAll() ([]models.Sdk, error) {
 }
 
 func (f ListFetcher) parse(s string) ([]models.Sdk, error) {
-	sdks := make([]models.Sdk, 0)
-
 	r, err := regexp.Compile(`href=['"]\/dl(/go([0-9.]*?)\.(\w+)-([\w\-.]+)\.(?:tar\.gz|zip)+)['"]`)
 	if err != nil {
 		return nil, fmt.Errorf("error compile regexp: %w", err)
 	}
 
+	sdks := make([]models.Sdk, 0)
 	for _, parts := range r.FindAllStringSubmatch(s, -1) {
 		// fmt.Printf("%v\n", parts)
 

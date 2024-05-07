@@ -27,18 +27,17 @@ func (i Installer) Install(version string) error {
 		}
 
 		if strings.HasSuffix(sdk.FilePath, ".zip") {
-			if err = i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
+			if err := i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
 				return fmt.Errorf("cannot unpack specified SDK: %w", err)
 			}
 		} else if strings.HasSuffix(sdk.FilePath, ".tar.gz") {
-			if err = i.UnpackTarGz(sdk.FilePath, i.Config.InstallDir); err != nil {
+			if err := i.UnpackTarGz(sdk.FilePath, i.Config.InstallDir); err != nil {
 				return fmt.Errorf("cannot unpack specified SDK: %w", err)
 			}
 		}
 
 		tempDir := filepath.Join(i.Config.InstallDir, "go")
-		err = os.Rename(tempDir, installDir)
-		if err != nil {
+		if err := os.Rename(tempDir, installDir); err != nil {
 			return fmt.Errorf("cannot rename directory for specified SDK: %w", err)
 		}
 		fmt.Printf("SDK has been installed: %s\n", installDir)
@@ -50,7 +49,7 @@ func (i Installer) Install(version string) error {
 	if _, err := os.Stat(localDir); os.IsNotExist(err) {
 		for _, dir := range []string{"bin", "pkg"} {
 			dirPath := filepath.Join(localDir, dir)
-			if err = os.MkdirAll(dirPath, os.ModePerm); err != nil {
+			if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
 				return fmt.Errorf("cannot create dir: %s error: %w", dirPath, err)
 			}
 		}
@@ -127,7 +126,7 @@ func (i Installer) UnpackTarGz(src, dst string) error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("cannot read entry in file: %s error: %w", src, err)
+			return fmt.Errorf("cannot read entry in file %s: %w", src, err)
 		}
 
 		path := filepath.Join(dst, header.Name)

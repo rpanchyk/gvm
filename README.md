@@ -61,7 +61,7 @@ Available Commands:
   install     Install specified Go version
   list        Shows list of available Go versions
   remove      Remove specified Go version
-  update      Install the latest Go version
+  update      Update Go to the latest version and set it as default
   version     Shows version of gvm
 
 Flags:

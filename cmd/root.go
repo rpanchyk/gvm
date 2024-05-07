@@ -51,11 +51,11 @@ func initConfig() {
 
 func getConfig() models.Config {
 	var config models.Config
-	err := viper.Unmarshal(&config)
-	if err != nil {
+	if err := viper.Unmarshal(&config); err != nil {
 		fmt.Println("Cannot unmarshal config, error:", err)
 		os.Exit(1)
 	}
+
 	config.DownloadDir = toAbsPath(config.DownloadDir)
 	config.InstallDir = toAbsPath(config.InstallDir)
 	config.LocalDir = toAbsPath(config.LocalDir)

@@ -20,7 +20,7 @@ var removeCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		remover := &services.Remover{Config: &utils.Config}
-		if err := remover.Remove(removeDownloaded, removeInstalled, args[0]); err != nil {
+		if err := remover.Remove(args[0], removeDownloaded, removeInstalled); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
