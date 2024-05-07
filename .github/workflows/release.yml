@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_arch: linux-amd64
+            asset_name: ${{ github.event.repository.name }}-linux-amd64.zip
+          - os: ubuntu-latest
+            os_arch: macosx-amd64
+            asset_name: ${{ github.event.repository.name }}-macosx-amd64.zip
+          - os: ubuntu-latest
+            os_arch: macosx-arm64
+            asset_name: ${{ github.event.repository.name }}-macosx-arm64.zip
+          - os: ubuntu-latest
+            os_arch: windows-amd64
+            asset_name: ${{ github.event.repository.name }}-windows-amd64.zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22.2"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Create binaries
+        run: make deps build-${{ matrix.os_arch }}
+
+      - name: Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: builds/${{ matrix.asset_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+          overwrite: true
