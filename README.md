@@ -85,8 +85,8 @@ For example, let's add Go new version.
 2. Install Go `1.22.0` version: `gvm install 1.22.0`
 
 ```
-SDK has been installed: /home/rus/.gvm/sdk/go1.22.0
-Local directory created: /home/rus/.gvm/local/go1.22.0
+SDK has been installed: /home/user/.gvm/sdk/go1.22.0
+Local directory created: /home/user/.gvm/local/go1.22.0
 ```
 
 3. Set Go `1.22.0` version as default: `gvm default 1.22.0`
@@ -95,7 +95,7 @@ Local directory created: /home/rus/.gvm/local/go1.22.0
 User environment is set to go1.22.0 version as default
 ```
 
-4. (Important!) Restart terminal to apply changes.
+4. (_Important!_) Restart terminal to apply changes.
 
 5. Check Go versions list again to see the asterisk near default version: `gvm list`
 
@@ -124,16 +124,16 @@ go version go1.22.0 linux/amd64
 ## How it works
 
 - Verify specified SDK version is available.
-- Download archive from https://go.dev/dl page.
-- Verify checksum of fetched archive file (Not implemented).
+- Download SDK archive from https://go.dev/dl page.
+- Verify checksum of fetched file (Not implemented).
 - Extract archive to `{install_dir}/go{version}` directory.
 - Create `{local_dir}/go{version}` directory.
-- Set `GOROOT` and `GOPATH` env variables.
-- Update `PATH` env variable with `GOROOT/bin` and `GOPATH/bin`.
+- Set `GOROOT` and `GOPATH` environment variables.
+- Add `GOROOT/bin` and `GOPATH/bin` to `PATH` environment variable.
 
 ## Alternatives
 
-This project was started for learning of Go Programming Language purposes. Since author is moving from Java world,
+This project was started for learning of Go Programming Language purposes. Since author comes from Java world,
 initially it was inspired by [SDKMAN!](https://sdkman.io) but later found similar projects, like:
 
 - `moovweb/gvm` - https://github.com/moovweb/gvm
