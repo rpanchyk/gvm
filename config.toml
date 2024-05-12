@@ -16,13 +16,19 @@ install_dir = "./sdk"
 local_dir = "./local"
 
 # Max versions number to show in list.
-limit = 10
+list_limit = 10
 
 # Show versions having same OS with current environment.
-filter_os = true
+list_filter_os = true
 
 # Show versions having same architecture with current environment.
-filter_arch = true
+list_filter_arch = true
+
+# File with list of cached SDKs in JSON format.
+list_cache_file = "./cache.json"
+
+# Cache expiration time in minutes.
+list_cache_ttl = 1440
 
 # Defines in which file is added loading config string.
 # Non-windows property.

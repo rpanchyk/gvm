@@ -1,6 +1,6 @@
 //go:build !windows
 
-package services
+package defaulter
 
 import (
 	"bufio"
@@ -17,7 +17,7 @@ type PlatformDefaulter struct {
 	Config *models.Config
 }
 
-func (d PlatformDefaulter) Set(version string) error {
+func (d PlatformDefaulter) Default(version string) error {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("cannot get user home directory: %w", err)

@@ -59,6 +59,7 @@ func getConfig() models.Config {
 	config.DownloadDir = toAbsPath(config.DownloadDir)
 	config.InstallDir = toAbsPath(config.InstallDir)
 	config.LocalDir = toAbsPath(config.LocalDir)
+	config.ListCacheFile = toAbsPath(config.ListCacheFile)
 	return config
 }
 

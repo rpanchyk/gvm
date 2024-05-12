@@ -1,4 +1,4 @@
-package services
+package installer
 
 import (
 	"archive/tar"
@@ -11,32 +11,43 @@ import (
 	"strings"
 
 	"github.com/rpanchyk/gvm/internal/models"
+	"github.com/rpanchyk/gvm/internal/services/downloader"
 )
 
-type Installer struct {
-	Config *models.Config
+type DefaultInstaller struct {
+	config     *models.Config
+	downloader downloader.Downloader
 }
 
-func (i Installer) Install(version string) error {
-	installDir := filepath.Join(i.Config.InstallDir, "go"+version)
+func NewDefaultInstaller(
+	config *models.Config,
+	downloader downloader.Downloader) *DefaultInstaller {
+
+	return &DefaultInstaller{
+		config:     config,
+		downloader: downloader,
+	}
+}
+
+func (i DefaultInstaller) Install(version string) error {
+	installDir := filepath.Join(i.config.InstallDir, "go"+version)
 	if _, err := os.Stat(installDir); os.IsNotExist(err) {
-		downloader := &Downloader{Config: i.Config}
-		sdk, err := downloader.Download(version)
+		sdk, err := i.downloader.Download(version)
 		if err != nil {
 			return fmt.Errorf("cannot download specified SDK: %w", err)
 		}
 
 		if strings.HasSuffix(sdk.FilePath, ".zip") {
-			if err := i.unpackZip(sdk.FilePath, i.Config.InstallDir); err != nil {
+			if err := i.unpackZip(sdk.FilePath, i.config.InstallDir); err != nil {
 				return fmt.Errorf("cannot unpack specified SDK: %w", err)
 			}
 		} else if strings.HasSuffix(sdk.FilePath, ".tar.gz") {
-			if err := i.UnpackTarGz(sdk.FilePath, i.Config.InstallDir); err != nil {
+			if err := i.unpackTarGz(sdk.FilePath, i.config.InstallDir); err != nil {
 				return fmt.Errorf("cannot unpack specified SDK: %w", err)
 			}
 		}
 
-		tempDir := filepath.Join(i.Config.InstallDir, "go")
+		tempDir := filepath.Join(i.config.InstallDir, "go")
 		if err := os.Rename(tempDir, installDir); err != nil {
 			return fmt.Errorf("cannot rename directory for specified SDK: %w", err)
 		}
@@ -45,7 +56,7 @@ func (i Installer) Install(version string) error {
 		fmt.Printf("SDK already installed: %s\n", installDir)
 	}
 
-	localDir := filepath.Join(i.Config.LocalDir, "go"+version)
+	localDir := filepath.Join(i.config.LocalDir, "go"+version)
 	if _, err := os.Stat(localDir); os.IsNotExist(err) {
 		for _, dir := range []string{"bin", "pkg"} {
 			dirPath := filepath.Join(localDir, dir)
@@ -59,7 +70,7 @@ func (i Installer) Install(version string) error {
 	return nil
 }
 
-func (i Installer) unpackZip(src, dst string) error {
+func (i DefaultInstaller) unpackZip(src, dst string) error {
 	archive, err := zip.OpenReader(src)
 	if err != nil {
 		return fmt.Errorf("cannot open file: %s error: %w", src, err)
@@ -107,7 +118,7 @@ func (i Installer) unpackZip(src, dst string) error {
 	return nil
 }
 
-func (i Installer) UnpackTarGz(src, dst string) error {
+func (i DefaultInstaller) unpackTarGz(src, dst string) error {
 	archive, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("cannot open file: %s error: %w", src, err)

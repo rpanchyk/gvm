@@ -1,4 +1,4 @@
-package services
+package remover
 
 import (
 	"fmt"
@@ -6,15 +6,26 @@ import (
 	"path/filepath"
 
 	"github.com/rpanchyk/gvm/internal/models"
+	"github.com/rpanchyk/gvm/internal/services/lister"
 )
 
-type Remover struct {
-	Config *models.Config
+type DefaultRemover struct {
+	config      *models.Config
+	listFetcher lister.ListFetcher
 }
 
-func (r Remover) Remove(version string, removeDownloaded, removeInstalled bool) error {
-	listFetcher := &ListFetcher{Config: r.Config}
-	sdks, err := listFetcher.FetchAll()
+func NewDefaultRemover(
+	config *models.Config,
+	listFetcher lister.ListFetcher) *DefaultRemover {
+
+	return &DefaultRemover{
+		config:      config,
+		listFetcher: listFetcher,
+	}
+}
+
+func (r DefaultRemover) Remove(version string, removeDownloaded, removeInstalled bool) error {
+	sdks, err := r.listFetcher.Fetch()
 	if err != nil {
 		return fmt.Errorf("cannot get list of SDKs: %w", err)
 	}
@@ -43,7 +54,7 @@ func (r Remover) Remove(version string, removeDownloaded, removeInstalled bool) 
 	return nil
 }
 
-func (r Remover) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
+func (r DefaultRemover) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
 	for _, sdk := range sdks {
 		if sdk.Version == version {
 			return &sdk, nil
@@ -52,7 +63,7 @@ func (r Remover) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error)
 	return nil, fmt.Errorf("version %s not found", version)
 }
 
-func (r Remover) removeDownloaded(sdk *models.Sdk) error {
+func (r DefaultRemover) removeDownloaded(sdk *models.Sdk) error {
 	if !sdk.IsDownloaded {
 		fmt.Printf("SDK %s version is not downloaded\n", sdk.Version)
 		return nil
@@ -66,14 +77,14 @@ func (r Remover) removeDownloaded(sdk *models.Sdk) error {
 	return nil
 }
 
-func (r Remover) removeInstalled(sdk *models.Sdk) error {
+func (r DefaultRemover) removeInstalled(sdk *models.Sdk) error {
 	if !sdk.IsInstalled {
 		fmt.Printf("SDK %s version is not installed\n", sdk.Version)
 		return nil
 	}
 
-	goRootDir := filepath.Join(r.Config.InstallDir, "go"+sdk.Version)
-	goPathDir := filepath.Join(r.Config.LocalDir, "go"+sdk.Version)
+	goRootDir := filepath.Join(r.config.InstallDir, "go"+sdk.Version)
+	goPathDir := filepath.Join(r.config.LocalDir, "go"+sdk.Version)
 	for _, dir := range []string{goRootDir, goPathDir} {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			fmt.Printf("Directory %s doesn't exist\n", dir)

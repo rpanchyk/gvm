@@ -1,6 +1,6 @@
 //go:build windows
 
-package services
+package defaulter
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ type PlatformDefaulter struct {
 	Config *models.Config
 }
 
-func (d PlatformDefaulter) Set(version string) error {
+func (d PlatformDefaulter) Default(version string) error {
 	goRootDir := filepath.Join(d.Config.InstallDir, "go"+version)
 	if _, err := os.Stat(goRootDir); os.IsNotExist(err) {
 		return fmt.Errorf("go%s is not installed because directory doesn't exist: %s", version, goRootDir)

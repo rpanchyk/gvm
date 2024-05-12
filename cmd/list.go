@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rpanchyk/gvm/internal/services"
+	"github.com/rpanchyk/gvm/internal/clients"
+	"github.com/rpanchyk/gvm/internal/services/cacher"
+	"github.com/rpanchyk/gvm/internal/services/lister"
 	"github.com/rpanchyk/gvm/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +15,13 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Shows list of available Go versions",
 	Run: func(cmd *cobra.Command, args []string) {
-		listFetcher := services.ListFetcher{Config: &utils.Config}
+		listFetcher := lister.NewFilteredListFetcher(
+			&utils.Config,
+			lister.NewDefaultListFetcher(
+				&utils.Config,
+				&clients.SimpleHttpClient{},
+				cacher.NewDefaultListCacher(&utils.Config)),
+		)
 		sdks, err := listFetcher.Fetch()
 		if err != nil {
 			fmt.Println(err)

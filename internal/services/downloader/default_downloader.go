@@ -1,4 +1,4 @@
-package services
+package downloader
 
 import (
 	"fmt"
@@ -9,15 +9,26 @@ import (
 	"path/filepath"
 
 	"github.com/rpanchyk/gvm/internal/models"
+	"github.com/rpanchyk/gvm/internal/services/lister"
 )
 
-type Downloader struct {
-	Config *models.Config
+type DefaultDownloader struct {
+	config      *models.Config
+	listFetcher lister.ListFetcher
 }
 
-func (d Downloader) Download(version string) (*models.Sdk, error) {
-	listFetcher := &ListFetcher{Config: d.Config}
-	sdks, err := listFetcher.FetchAll()
+func NewDefaultDownloader(
+	config *models.Config,
+	listFetcher lister.ListFetcher) *DefaultDownloader {
+
+	return &DefaultDownloader{
+		config:      config,
+		listFetcher: listFetcher,
+	}
+}
+
+func (d DefaultDownloader) Download(version string) (*models.Sdk, error) {
+	sdks, err := d.listFetcher.Fetch()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get list of SDKs: %w", err)
 	}
@@ -28,7 +39,7 @@ func (d Downloader) Download(version string) (*models.Sdk, error) {
 	}
 	fmt.Printf("Found SDK: %+v\n", *sdk)
 
-	filePath, err := d.downloadSdk(sdk.URL, d.Config.DownloadDir)
+	filePath, err := d.downloadSdk(sdk.URL, d.config.DownloadDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot download specified SDK: %w", err)
 	}
@@ -40,7 +51,7 @@ func (d Downloader) Download(version string) (*models.Sdk, error) {
 	return sdk, nil
 }
 
-func (d Downloader) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
+func (d DefaultDownloader) findSdk(version string, sdks []models.Sdk) (*models.Sdk, error) {
 	for _, sdk := range sdks {
 		if sdk.Version == version {
 			return &sdk, nil
@@ -49,7 +60,7 @@ func (d Downloader) findSdk(version string, sdks []models.Sdk) (*models.Sdk, err
 	return nil, fmt.Errorf("version %s not found", version)
 }
 
-func (d Downloader) downloadSdk(fileUrl, dir string) (string, error) {
+func (d DefaultDownloader) downloadSdk(fileUrl, dir string) (string, error) {
 	fileName := path.Base(fileUrl)
 	filePath := filepath.Join(dir, fileName)
 	if _, err := os.Stat(filePath); err == nil {
