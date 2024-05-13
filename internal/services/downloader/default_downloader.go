@@ -2,12 +2,11 @@ package downloader
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 
+	"github.com/rpanchyk/gvm/internal/clients"
 	"github.com/rpanchyk/gvm/internal/models"
 	"github.com/rpanchyk/gvm/internal/services/lister"
 )
@@ -15,15 +14,18 @@ import (
 type DefaultDownloader struct {
 	config      *models.Config
 	listFetcher lister.ListFetcher
+	httpSaver   clients.HttpSaver
 }
 
 func NewDefaultDownloader(
 	config *models.Config,
-	listFetcher lister.ListFetcher) *DefaultDownloader {
+	listFetcher lister.ListFetcher,
+	httpSaver clients.HttpSaver) *DefaultDownloader {
 
 	return &DefaultDownloader{
 		config:      config,
 		listFetcher: listFetcher,
+		httpSaver:   httpSaver,
 	}
 }
 
@@ -60,32 +62,15 @@ func (d DefaultDownloader) findSdk(version string, sdks []models.Sdk) (*models.S
 	return nil, fmt.Errorf("version %s not found", version)
 }
 
-func (d DefaultDownloader) downloadSdk(fileUrl, dir string) (string, error) {
-	fileName := path.Base(fileUrl)
-	filePath := filepath.Join(dir, fileName)
+func (d DefaultDownloader) downloadSdk(url, dir string) (string, error) {
+	filePath := filepath.Join(dir, path.Base(url))
 	if _, err := os.Stat(filePath); err == nil {
 		fmt.Printf("SDK %s has been already downloaded\n", filePath)
 		return filePath, nil
 	}
 
-	resp, err := http.Get(fileUrl)
-	if err != nil {
-		return "", fmt.Errorf("cannot get data from url: %s error: %w", fileUrl, err)
-	}
-	defer resp.Body.Close()
-
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("cannot create dir: %s error: %w", dir, err)
-	}
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		return "", fmt.Errorf("cannot create file: %s error: %w", filePath, err)
-	}
-	defer file.Close()
-
-	if _, err = io.Copy(file, resp.Body); err != nil {
-		return "", fmt.Errorf("cannot save file: %s error: %w", filePath, err)
+	if err := d.httpSaver.Save(url, filePath); err != nil {
+		return "", fmt.Errorf("cannot save file to: %s error: %w", filePath, err)
 	}
 
 	fmt.Printf("SDK %s has been downloaded\n", filePath)

@@ -23,6 +23,7 @@ var downloadCmd = &cobra.Command{
 				&utils.Config,
 				&clients.SimpleHttpClient{},
 				cacher.NewDefaultListCacher(&utils.Config)),
+			&clients.SimpleHttpSaver{},
 		)
 		if _, err := downloader.Download(args[0]); err != nil {
 			fmt.Println(err)

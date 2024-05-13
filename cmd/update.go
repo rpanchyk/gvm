@@ -34,7 +34,8 @@ var updateCmd = &cobra.Command{
 					lister.NewDefaultListFetcher(
 						&utils.Config,
 						&clients.SimpleHttpClient{},
-						cacher.NewDefaultListCacher(&utils.Config)))),
+						cacher.NewDefaultListCacher(&utils.Config)),
+					&clients.SimpleHttpSaver{})),
 
 			defaulter.NewDefaultDefaulter(
 				&utils.Config,

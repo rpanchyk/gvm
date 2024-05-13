@@ -25,7 +25,8 @@ var installCmd = &cobra.Command{
 				lister.NewDefaultListFetcher(
 					&utils.Config,
 					&clients.SimpleHttpClient{},
-					cacher.NewDefaultListCacher(&utils.Config))),
+					cacher.NewDefaultListCacher(&utils.Config)),
+				&clients.SimpleHttpSaver{}),
 		)
 		if err := installer.Install(args[0]); err != nil {
 			fmt.Println(err)
