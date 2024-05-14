@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/rpanchyk/gvm/internal/models"
 	"github.com/rpanchyk/gvm/internal/utils"
@@ -19,7 +21,16 @@ var RootCmd = &cobra.Command{
 	},
 }
 
+func catchSignal() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGSEGV)
+	sig := <-sigs
+	fmt.Println("Signal obtained:", sig)
+}
+
 func Execute() {
+	go catchSignal()
+
 	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
