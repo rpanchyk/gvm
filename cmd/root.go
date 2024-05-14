@@ -21,13 +21,6 @@ var RootCmd = &cobra.Command{
 	},
 }
 
-func catchSignal() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGSEGV)
-	sig := <-sigs
-	fmt.Println("Signal obtained:", sig)
-}
-
 func Execute() {
 	go catchSignal()
 
@@ -35,6 +28,13 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func catchSignal() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGSEGV)
+	sig := <-sigs
+	fmt.Println("Signal obtained:", sig)
 }
 
 func init() {
